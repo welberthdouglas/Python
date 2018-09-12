@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(123)
 all_walks = []
 
-# Simulate random walk 500 times
+# Simulate random walk 10000 times
 for i in range(10000) :
     random_walk = [0]
     for x in range(100) :
