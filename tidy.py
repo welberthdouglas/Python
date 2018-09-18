@@ -29,3 +29,14 @@ df2=pd.DataFrame(d2)
 
 #using melt to make df1 tidy
 df1_tidy=pd.melt(df1,id_vars=['Name'],var_name=['Treatment'])
+
+   # THE FUNCTION PIVOT_TABLE
+    #Pivoting data is the opposite of melting it. While melting takes a set of columns and turns it into a single column, 
+    #pivoting will create a new column for each unique value in a specified column .pivot_table() has an index parameter which
+    #you can use to specify the columns that you don't want pivoted: It is similar to the id_vars parameter of pd.melt(). 
+    #Two other parameters that you have to specify are columns (the name of the column you want to pivot), 
+    #and values (the values to be used when the column is pivoted).
+
+# using pivot to make df2 tidy
+df2_tidy=pd.pivot_table(df2,index=['Day'],columns=['Measure'],values=['Value'])    #optional argument, aggfunc
+df2_tidy_reset=df2_tidy.reset_index()   # to reset the index and restore the dataframe
