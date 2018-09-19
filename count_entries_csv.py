@@ -1,3 +1,9 @@
+# using pandas this can be done with the method value_counts()!!
+
+
+
+#Example
+
 # Define count_entries()
 def count_entries(csv_file,c_size,colname):
     """Return a dictionary with counts of
@@ -18,3 +24,6 @@ def count_entries(csv_file,c_size,colname):
 
     # Return counts_dict
     return counts_dict
+
+
+
