@@ -1,4 +1,4 @@
-# using pandas this can be done with the method value_counts()!!
+# using pandas this can be done with the method value_counts()!! (can be used in a pandas series but not in a dataframe)
 
 
 
