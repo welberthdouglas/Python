@@ -37,6 +37,6 @@ df1_tidy=pd.melt(df1,id_vars=['Name'],var_name=['Treatment'])
     #Two other parameters that you have to specify are columns (the name of the column you want to pivot), 
     #and values (the values to be used when the column is pivoted).
 
-# using pivot to make df2 tidy  !!! NOT TIDY, THE PIVOT FUNCTION CREATE AN AGGREGATION IF THE INDEX (DAY IN THE EXAMPLE) HAS DUPLICATE VALUES
+# using pivot to make df2 tidy  !!! NOT TIDY, THE PIVOT FUNCTION CREATE AN AGGREGATION IF THE INDEX COLUMN PAIR HAS DUPLICATE VALUES
 df2_tidy=pd.pivot_table(df2,index=['Day'],columns=['Measure'],values=['Value'])    #optional argument, aggfunc=np.mean() (by default)
 df2_tidy_reset=df2_tidy.reset_index()   # to reset the index and restore the dataframe
