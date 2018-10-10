@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-Case Distribuição
-
-@author: Welberth
-"""
 # packages
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+######################################
+#           IMPORTING DATA
+######################################
+
 # importing raw data
-# dropping the '0' colunm and indexing by data
+# dropping the '0' colunm and indexing by date
 costs = pd.read_csv('costs.csv', usecols =[1,2,3],index_col = 'date', parse_dates = True)   
 installs = pd.read_csv('installs.csv', usecols = [1,2,3,4],index_col = 'date', parse_dates = True)
 performance = pd.read_csv('performance.csv', usecols = [1,2,3,4],index_col = 'date', parse_dates = True)
@@ -38,17 +36,17 @@ installs_by_source = installs_by_source.sort_index()
 revenue_by_source = revenue_by_source.sort_index()
 
 
-# Adding how much days after installation is the purchased being made in the revenue_by_source_idate table
+# Adding how much days after installation is the purchase being made
 revenue_by_source_idate['days_after_installation']=(revenue_by_source_idate['purchase_date'] - revenue_by_source_idate['install_date']).astype('timedelta64[D]')
 sources=['AdYan','Adcity','Dozenads','Facebook','GenerationY','Google']
 months=['nov 2015','dec 2015','jan 2016','feb 2016','mar 2016']
 
 
 #####################################################################################
-# EM QUAL PLATAFORMA A PERFORMANCE DO APP TEM SIDO MAIOR?
+#               IN WHICH SOURCE THE APP HAS THE BEST PERFORMANCE?
 #####################################################################################
 
-# Performance acumulada durante todo o período (revenue-cost)
+# (revenue-cost)  performance for each source for the entire period
 
 performance_tot={}
 for i in range(len(sources)):
@@ -56,8 +54,9 @@ for i in range(len(sources)):
     cost = costs[costs.source == sources[i]].sum().iloc[1]
     performance_tot[sources[i]]= [rev - cost]
 
-# Performance mes
+# (revenue - cost) performance for each source month by month
 
+# reshaping the revenue and cost dataframe to alocate each source in a column
 revenue_by_source2=pd.pivot_table(revenue_by_source,index=['calendar_date'],columns=['source'],values=['revenue'],fill_value=0) 
 revenue_by_source2.columns=sources
 
@@ -71,17 +70,20 @@ for i in range(len(sources)):
         cost = costs2.loc[:,sources[i]][months[m]].sum() 
         performance_m[i,m] = rev - cost
 
+# transforming the numpy array in a dataframe
 performance_m=pd.DataFrame(performance_m, index=sources)
 performance_m.columns=months
 performance_m=performance_m.T
+
+# ploting revenue-cost for each source monthly
 performance_m.plot()
 
 
 #####################################################################################
-# COMO VARIA A RECEITA POR USUÁRIO EM CADA CANAL EM FUNÇÃO DE DIAS APÓS A INSTALAÇÃO
+#     HOW THE REVENUE PER USER VARIES AS A FUNCION OF DSI (DAYS SINCE INSTALL)?
 #####################################################################################
 
-# por isso num  loop !!!
+# revenue per user for each source (dumb way)
 
 # FACEBOOK
 
@@ -150,6 +152,12 @@ revenue_per_user_cum.plot()
 plt.ylabel('accumulated revenue per user')
 plt.savefig('accumulated revenue per user.pdf')
 
+
+
+
+
+
+
 estimator14={}
 for i in range(len(sources)):
     estimator14[sources[i]]=revenue_per_user_cum.loc[14,sources[i]]/revenue_per_user_cum[sources[i]].max()
@@ -158,12 +166,7 @@ for i in range(len(sources)):
 for i in range(len(sources)):
     max[sources[i]]=revenue_per_user_cum.loc[14,sources[i]]/revenue_per_user_cum[sources[i]].max()
     
-    
-    
-    
-    
-    
-    
+ 
 revenue_by_source_idate=revenue_by_source_idate.set_index('install_date')
 
 r1=revenue_by_source_idate.loc['2015-11-01':'2015-11-14']
@@ -188,109 +191,103 @@ r10=revenue_by_source_idate.loc['2016-03-06':'2016-03-19']
 r10=r10[r10['days_after_installation'] <=14]
 r11=revenue_by_source_idate.loc['2016-03-20':'2016-03-31']
 r11=r11[r11['days_after_installation'] <=14]  
-    
-    
-    
-    
-    
-    
+
     
 
 
-##############################################
-# COM QUAL FREQUÊNCIA OTIMIZAR AS CAMPANHAS?  ver tradeoffs, custo por instalação
-##############################################
+##################################################################
+#           HOW OFTEN SHOULD WE OPTIMIZE THE CAMPAIGN?
+##################################################################
 
+# installs by source plot (dumb way)
 plt.plot(installs_by_source.installs[installs_by_source.source == 'Facebook'],label='Facebook')
 plt.plot(installs_by_source.installs[installs_by_source.source == 'Google'],label='Google')
 plt.plot(installs_by_source.installs[installs_by_source.source == 'Dozenads'],label='Dozenads')
 plt.plot(installs_by_source.installs[installs_by_source.source == 'Adcity'],label='Adcity')
 plt.plot(installs_by_source.installs[installs_by_source.source == 'GenerationY'],label='GenerationY')
 plt.plot(installs_by_source.installs[installs_by_source.source == 'AdYan'],label='AdYan')
-#plt.plot(installs_by_source.installs[installs_by_source.source == 'Other'],label='Other')
+plt.plot(installs_by_source.installs[installs_by_source.source == 'Other'],label='Other')
 plt.ylabel('instalações')
-#plt.xlim(('2016-02', '2016-03'))
 plt.legend()
 plt.xticks(rotation=90)
 plt.show()
 
+# total installs in the period
 itot=installs_by_source.groupby('date').sum()
 itot2=installs_by_source.installs[installs_by_source.source != 'Other'].groupby('date').sum()
 
+#comoparison between organic and non organic installs
 plt.plot(itot)
 plt.plot(itot2)
 plt.yscale('log')
-plt.ylabel('número de downloads')
-plt.savefig('revenueperuser.pdf')
-# VARIAÇÃO DA RECEITA POR USUÁRIO POR DIA APÓS A INSTALAÇÃO PARA TODOS OS CANAIS EXCLUINDO SE OS ORGANICOS
+plt.show()
 
+# revenue per user by day for all sources 
 days_total=revenue_by_source_idate.loc[:,['purchase','days_after_installation']]
 total=days_total.groupby('days_after_installation').sum()
 users_total=(installs_by_source.sum()).loc['installs']-(installs_by_source[installs_by_source.source=='Other'].sum()).loc['installs']
 
+# plot
 total['revenue_user']=total['purchase']/users_total
 total.revenue_user.plot()
-plt.ylabel('revenue per user')
-plt.savefig('revenueperuser.pdf')
-###########################################################
-# EVOLUÇÃO DA RECEITA POR USUÁRIO AO LONGO DOS MESES
-###########################################################
 
 
+
+###########################################################
+#                   REVENUE PER USER 
+###########################################################
+
+# aggregating data by purchase date
 rev=revenue_by_source.groupby('calendar_date').sum()
 
 
-inst=installs_by_source[installs_by_source.source != 'Other'].groupby('date').sum()  # excluir instalações organicas
+inst=installs_by_source[installs_by_source.source != 'Other'].groupby('date').sum()  # excluding organic installs
 inst['cumulative']=inst.installs.cumsum()
 
+# revenue per user
 rev['revenue_per_user']=rev['revenue']/inst['cumulative']
 rev['revenue_per_user'].plot()
-plt.ylabel('revenue per user')
-plt.savefig('revenueperuser.pdf')
+
+# revenue
 rev['revenue'].plot()
-plt.ylabel('revenue')
-plt.savefig('revenueperuser.pdf')
+
 
 
 ###########################################################################
-#   QUAIS DECISÕES DE ALOCAÇÃO DE RECURSOS DEVE-SE TOMAR A CURTO PRASO?
+#            HOW SHOULD WE ALOCATE THE BUDGET IN THE SHORT RUN?
 ###########################################################################
 
-
+# aggregating costs and downloads daily 
 tot_costs=costs.groupby('date').sum()
 tot_inst=installs_by_source.groupby('date').sum()
+
+# plot of total costs and total downloads daily (excluding organic installs)
 tot_costs.spend.plot()
 tot_inst.plot()
+
+# total costs per install
 tot_costs['costperinst']=tot_costs['spend']/tot_inst['installs']
 tot_costs.costperinst.plot()
 
+# total revenue per user - cost per install
 (rev['revenue_per_user']-tot_costs['costperinst']).plot()
 
-plt.plot(tot_inst)
-plt.plot(tot_costs.spend)
-plt.ylabel('')
-plt.savefig('revenueperuser.pdf')
-plt.show()
-
+#!!!!!       CONFERIR ISSO - NÃO PODE TER USUÁRIOS ORGANICOS AQUI
 prop = installs_by_source[installs_by_source.source == 'Other'].sum()/installs_by_source['installs'].sum()
 
-
-
+# organic installs
 plt.plot(installs_by_source.installs[installs_by_source.source == 'Other'],label='Other')
 plt.ylabel('instalações')
 plt.legend()
 plt.show()
 
 
-
-
-
 ###########################################################################
-#   PUBLISHER APP É IMPORTANTE?
+#                     IMPORTANCE OF PUBLISHER APPS
 ###########################################################################
 
 
-# aplicativos com maior instalação por canal
+# publisher apps with more installs subdivided by source
 
 pub_app=installs[installs.source != 'Organic']#.groupby('publisher_app').count()
 Facebook_pubapp=pub_app[pub_app.source == 'Facebook']
@@ -316,7 +313,7 @@ pub_app=installs[installs.source != 'Organic']#.groupby('publisher_app').count()
 Google_pubapp=pub_app[pub_app.source == 'Google']
 Google_pubapp=Google_pubapp.groupby('publisher_app').count()
 
-# aplicativos com maior instalação total
+# publisher apps with more installs overall
 
 pub_app_tot=installs[installs.source != 'Organic'].groupby('publisher_app').count()
 pub_app_tot=pub_app_tot.sort_values(['source'],ascending=False)
@@ -324,38 +321,40 @@ pub_app_tot.head(20)[1:].plot(marker='.')
 
 installs[installs.source == 'Organic']['publisher_app'].unique()
 
-#df=days_facebook.head()
-#df=df.set_index('purchase_date')
-#fh=fff.head()
 
+###########################################################################
+#                             EXTRA PLOTS
+###########################################################################
 
-#facebook3=facebook_by_day.loc[:,['days_after_installation','purchase']]
-#facebook3=facebook3.groupby('days_after_installation').sum()
-#facebook3.plot()
-##
-##########
+# extra plots made in a dumb way
+
+# IMPRESSIONS
 plt.plot(performance.impressions[performance.source == 'Facebook'],label='Facebook')
 plt.plot(performance.impressions[performance.source == 'Google'],label='Google')
 plt.plot(performance.impressions[performance.source == 'Dozenads'],label='Dozenads')
 plt.plot(performance.impressions[performance.source == 'Adcity'],label='Adcity')
 plt.plot(performance.impressions[performance.source == 'GenerationY'],label='GenerationY')
 plt.plot(performance.impressions[performance.source == 'AdYan'],label='AdYan')
-#plt.yscale('log')
 plt.legend()
 plt.ylabel('impressões')
 plt.show()
-#
+
+
+# CLICKS
 plt.plot(performance.clicks[performance.source == 'Facebook'],label='Facebook')
 plt.plot(performance.clicks[performance.source == 'Google'],label='Google')
 plt.plot(performance.clicks[performance.source == 'Dozenads'],label='Dozenads')
 plt.plot(performance.clicks[performance.source == 'Adcity'],label='Adcity')
 plt.plot(performance.clicks[performance.source == 'GenerationY'],label='GenerationY')
 plt.plot(performance.clicks[performance.source == 'AdYan'],label='AdYan')
-#plt.yscale('log')
 plt.ylabel('clicks')
 plt.legend()
 plt.show()
-#
+
+
+
+# CLICKS / IMPRESSIONS
+# calculating the ratio between clicks and impressions
 performance['ratio'] = (performance.clicks/performance.impressions)*1000
 
 plt.plot(performance.ratio[performance.source == 'Facebook'],label='Facebook')
@@ -367,21 +366,9 @@ plt.plot(performance.ratio[performance.source == 'AdYan'],label='AdYan')
 plt.ylabel('clicks por impressão')
 plt.legend()
 plt.show()
-#
-plt.plot(installs_by_source.installs[installs_by_source.source == 'Facebook'],label='Facebook')
-plt.plot(installs_by_source.installs[installs_by_source.source == 'Google'],label='Google')
-plt.plot(installs_by_source.installs[installs_by_source.source == 'Dozenads'],label='Dozenads')
-plt.plot(installs_by_source.installs[installs_by_source.source == 'Adcity'],label='Adcity')
-plt.plot(installs_by_source.installs[installs_by_source.source == 'GenerationY'],label='GenerationY')
-plt.plot(installs_by_source.installs[installs_by_source.source == 'AdYan'],label='AdYan')
-#plt.plot(installs_by_source.installs[installs_by_source.source == 'Other'],label='Other')
-plt.ylabel('downloads')
-plt.savefig('revenueperuser.pdf')
-#plt.yscale('log')
 
-plt.legend()
-plt.show()
-#
+
+# REVENUE
 plt.plot(revenue_by_source.revenue[revenue_by_source.source == 'Facebook'],label='Facebook')
 plt.plot(revenue_by_source.revenue[revenue_by_source.source == 'Google'],label='Google')
 plt.plot(revenue_by_source.revenue[revenue_by_source.source == 'Dozenads'],label='Dozenads')
@@ -391,46 +378,8 @@ plt.plot(revenue_by_source.revenue[revenue_by_source.source == 'AdYan'],label='A
 plt.ylabel('revenue')
 plt.legend()
 plt.show()
-#
-##c_face = costs[costs.source == 'Facebook'].spend
-##r_face = revenue_by_source[revenue_by_source.source == 'Facebook'].revenue
-##roi_face = pd.concat([c_face,r_face],axis=1)
-##roi_face.roi = roi_face['spend']/roi_face['revenue']
-#
-#
-#
-#costs2 = pd.read_csv('costs.csv', usecols =[1,2,3],index_col = ['date', 'source'], parse_dates = True)   
-#revenue_by_source2 = pd.read_csv('Visao_revenue.csv', index_col = ['calendar_date', 'source'], parse_dates = True)
-#
-#costs2 = costs2.sort_index()
-#revenue_by_source2 = revenue_by_source2.sort_index()
-#roi=pd.concat([costs2,revenue_by_source2],axis=1)
-#roi['r']=roi['revenue']-roi['spend']
-#roi = roi.reset_index(level=[1])
-#roi.rename(columns={'level_1':'source'},inplace=True)
-#roi.fillna(0, inplace=True)      # substituindo NaN por 0
-#
-#plt.plot(roi.r[roi.source == 'Facebook'],label='Facebook')
-#plt.plot(roi.r[roi.source == 'Google'],label='Google')
-#plt.plot(roi.r[roi.source == 'Dozenads'],label='Dozenads')
-#plt.plot(roi.r[roi.source == 'Adcity'],label='Adcity')
-#plt.plot(roi.r[roi.source == 'GenerationY'],label='GenerationY')
-#plt.plot(roi.r[roi.source == 'AdYan'],label='AdYan')
-#plt.ylabel('revenue-cost')
-##plt.ylim(0, 15) 
-#plt.legend()
-#plt.show()
-#
-#face = roi.r[roi.source == 'Facebook'].sum()
-#gog = roi.r[roi.source == 'Google'].sum()
-#doz = roi.r[roi.source == 'Dozenads'].sum()
-#adc = roi.r[roi.source == 'Adcity'].sum()
-#gen = roi.r[roi.source == 'GenerationY'].sum()
-#ady = roi.r[roi.source == 'AdYan'].sum()
-#
-#g=[face+gog+doz+adc+gen+ady]
-#
-#
+
+# CPI
 plt.plot(CPI_by_source.cpi[CPI_by_source.source == 'Facebook'],label='Facebook')
 plt.plot(CPI_by_source.cpi[CPI_by_source.source == 'Google'],label='Google')
 plt.plot(CPI_by_source.cpi[CPI_by_source.source == 'Dozenads'],label='Dozenads')
@@ -439,17 +388,14 @@ plt.plot(CPI_by_source.cpi[CPI_by_source.source == 'GenerationY'],label='Generat
 plt.plot(CPI_by_source.cpi[CPI_by_source.source == 'AdYan'],label='AdYan')
 plt.ylabel('Custo por download')
 plt.legend()
-plt.savefig('revenueperuser.pdf')
-plt.show()
-#
+
+# COSTS
 plt.plot(costs.spend[costs.source == 'Facebook'],label='Facebook')
 plt.plot(costs.spend[costs.source == 'Google'],label='Google')
 plt.plot(costs.spend[costs.source == 'Dozenads'],label='Dozenads')
 plt.plot(costs.spend[costs.source == 'Adcity'],label='Adcity')
 plt.plot(costs.spend[costs.source == 'GenerationY'],label='GenerationY')
 plt.plot(costs.spend[costs.source == 'AdYan'],label='AdYan')
-#plt.plot(installs_by_source.installs[installs_by_source.source == 'Other'],label='Other')
 plt.ylabel('custo')
-#plt.yscale('log')
 plt.legend()
 plt.show()
