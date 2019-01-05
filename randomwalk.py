@@ -10,7 +10,7 @@ for i in range(10000) :
         step = random_walk[-1]
         dice = np.random.randint(1,7)
         if dice <= 2:
-            step = max(0, step - 1)
+            step = max(0, step - 1)   # part made to simplify the code and avoid another IF (if the step is zero, it should remain zero even if dice <=2)
         elif dice <= 5:
             step = step + 1
         else:
