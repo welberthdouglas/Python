@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat May  4 12:20:08 2019
+
+@author: Welberth
+"""
+
 from sklearn.datasets import make_moons
 import numpy as np
 from matplotlib import pyplot as plt
@@ -76,6 +83,51 @@ roc_auc_score(y, probs)
 xx, yy = np.mgrid[-3:3:.01, -3:3:.01]
 X_2=DataFrame(dict(x=xx.ravel(), y=yy.ravel()))
 X_poly = poly_features.fit_transform(X_2)
+probs = log_reg_poly.predict_proba(X_poly)[:, 1].reshape(xx.shape)
+
+
+#ploting nomlinear decision boundary
+
+f, ax = plt.subplots(figsize=(8, 6))
+ax.contour(xx, yy, probs, levels=[.5], cmap="Greys", vmin=0, vmax=.6)
+
+ax.scatter(X[100:,0], X[100:, 1], c=y[100:], s=1,
+           cmap="RdBu", vmin=-.2, vmax=1.2, linewidth=1)
+
+ax.set(aspect="equal",
+       xlim=(-2, 3), ylim=(-1.5, 2),
+       xlabel="$X_1$", ylabel="$X_2$")
+
+
+
+
+
+
+#------------------- regressão logistica with polynomial features with only 4 variables
+# the two original and two of the created with the biggest coefficient in the previous regression
+
+# gerando polynomial features
+poly_features = PolynomialFeatures(degree=3, include_bias=False)
+X_poly = poly_features.fit_transform(X)
+df_poly=DataFrame(X_poly).iloc[:,[0,1,2,5]]
+X_poly=X_poly[:,[0,1,2,5]]
+
+# regressão
+log_reg_poly = LogisticRegression()
+log_reg_poly.fit(X_poly, y)
+
+#AUC
+probs = log_reg_poly.predict_proba(X_poly)
+probs = probs[:, 1]
+roc_auc_score(y, probs)
+
+#----------------- ploting decision boundary
+
+#creating grid
+xx, yy = np.mgrid[-3:3:.01, -3:3:.01]
+X_2=DataFrame(dict(x=xx.ravel(), y=yy.ravel()))
+X_poly = poly_features.fit_transform(X_2)
+X_poly=X_poly[:,[0,1,2,5]]
 probs = log_reg_poly.predict_proba(X_poly)[:, 1].reshape(xx.shape)
 
 
