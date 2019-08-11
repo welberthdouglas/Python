@@ -11,7 +11,7 @@ import numpy as np
 
 n_a = 5   # number of alternatives
 n_q = 10   # number of questions
-al = list(range(1,n_a))
+al = list(range(1,n_a + 1))
 
 gab = np.random.choice(al,n_q)
 
